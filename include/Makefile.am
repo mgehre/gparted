@@ -50,6 +50,7 @@ EXTRA_DIST = \
 	i18n.h				\
 	jfs.h 				\
 	linux_swap.h 			\
+	luks.h				\
 	lvm2_pv.h			\
 	nilfs2.h			\
 	ntfs.h  			\

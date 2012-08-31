@@ -41,6 +41,7 @@ src/hfs.cc
 src/hfsplus.cc
 src/jfs.cc
 src/linux_swap.cc
+src/luks.cc
 src/lvm2_pv.cc
 src/main.cc
 src/ntfs.cc

@@ -39,6 +39,7 @@
 #include "../include/fat16.h"
 #include "../include/fat32.h"
 #include "../include/linux_swap.h"
+#include "../include/luks.h"
 #include "../include/lvm2_pv.h"
 #include "../include/reiserfs.h"
 #include "../include/nilfs2.h"
@@ -123,7 +124,7 @@ void GParted_Core::find_supported_filesystems()
 	FILESYSTEM_MAP[ FS_REISERFS ]	= new reiserfs() ;
 	FILESYSTEM_MAP[ FS_UFS ]	= new ufs() ;
 	FILESYSTEM_MAP[ FS_XFS ]	= new xfs() ;
-	FILESYSTEM_MAP[ FS_LUKS ]	= NULL ;
+	FILESYSTEM_MAP[ FS_LUKS ]	= new luks() ;
 	FILESYSTEM_MAP[ FS_UNKNOWN ]	= NULL ;
 
 	FILESYSTEMS .clear() ;
@@ -1053,7 +1054,8 @@ void GParted_Core::set_device_partitions( Device & device, PedDevice* lp_device,
 #endif
 				partition_is_busy = partition_is_busy ||
 									ped_partition_is_busy( lp_partition ) ||
-									( filesystem == GParted::FS_LVM2_PV && lvm2_pv_info .has_active_lvs( partition_path ) ) ;
+									( filesystem == GParted::FS_LVM2_PV && lvm2_pv_info .has_active_lvs( partition_path ) ) ||
+									( filesystem == GParted::FS_LUKS && !luks::find_map_by_device( partition_path, partition_temp. messages ) .empty() );
 
 				partition_temp .Set( device .get_path(),
 						     partition_path,
@@ -1190,9 +1192,6 @@ GParted::FILESYSTEM GParted_Core::get_filesystem( PedDevice* lp_device, PedParti
 
 		if ( 0 == memcmp( magic1 , "LUKS\xBA\xBE", 6 ) )
 		{
-			temp = _( "Linux Unified Key Setup encryption is not yet supported." ) ;
-			temp += "\n" ;
-			partition_temp .messages .push_back( temp ) ;
 			return GParted::FS_LUKS ;
 		}
 	}
@@ -1531,6 +1530,12 @@ void GParted_Core::set_mountpoints( std::vector<Partition> & partitions )
 			if ( ! vgname .empty() )
 				partitions[ t ] .add_mountpoint( vgname ) ;
 		}
+		else if ( partitions[ t ] .filesystem == GParted::FS_LUKS )
+		{
+			Glib::ustring map_name = luks::find_map_by_device( partitions[t].get_path(), partitions[ t ] .messages );
+			if ( ! map_name .empty() )
+				partitions[ t ] .add_mountpoint( map_name ) ;
+		}
 	}
 }
 	
@@ -1539,7 +1544,6 @@ void GParted_Core::set_used_sectors( std::vector<Partition> & partitions )
 	for ( unsigned int t = 0 ; t < partitions .size() ; t++ )
 	{
 		if ( partitions[ t ] .filesystem != GParted::FS_LINUX_SWAP &&
-		     partitions[ t ] .filesystem != GParted::FS_LUKS       &&
 		     partitions[ t ] .filesystem != GParted::FS_UNKNOWN
 		   )
 		{
