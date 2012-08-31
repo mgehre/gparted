@@ -59,6 +59,7 @@ gpartedbin_SOURCES = \
 	hfsplus.cc			\
 	jfs.cc				\
 	linux_swap.cc			\
+	luks.cc				\
 	lvm2_pv.cc			\
 	main.cc				\
 	nilfs2.cc			\

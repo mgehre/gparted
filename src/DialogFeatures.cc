@@ -123,9 +123,8 @@ void DialogFeatures::load_filesystems( const std::vector<FS> & FILESYSTEMS )
 	//fill the features chart with valid file systems 
 	for ( unsigned short t = 0; t < FILESYSTEMS .size() ; t++ )
 	{
-		//Skip luks and unknown because these are not file systems
+		//Skip unknown because it is not a file system
 		if (
-		     FILESYSTEMS[ t ] .filesystem == GParted::FS_LUKS    ||
 		     FILESYSTEMS[ t ] .filesystem == GParted::FS_UNKNOWN
 		   )
 			continue ;
