@@ -64,11 +64,11 @@ public:
 
 	static FileSystem * get_filesystem_object( const FILESYSTEM & filesystem ) ;
 	static bool filesystem_resize_disallowed( const Partition & partition ) ;
-	bool parse_device( const Glib::ustring& device_path, Proc_Partitions_Info& pp_info, Device& temp_device ) ;
+	static bool parse_device( const Glib::ustring& device_path, Proc_Partitions_Info& pp_info, Device& temp_device ) ;
 private:
 	//detectionstuff..
 	void init_maps() ;
-	void set_thread_status_message( Glib::ustring msg ) ;
+	static void set_thread_status_message( Glib::ustring msg ) ;
 	void read_mountpoints_from_file( const Glib::ustring & filename,
 					 std::map< Glib::ustring, std::vector<Glib::ustring> > & map ) ;
 	void read_mountpoints_from_file_swaps(
@@ -86,11 +86,12 @@ private:
 				 Sector end,
 				 Byte_Value sector_size,
 				 bool inside_extended ) ;
-	void set_mountpoints( std::vector<Partition> & partitions ) ;
-	void set_used_sectors( std::vector<Partition> & partitions ) ;
-	void mounted_set_used_sectors( Partition & partition ) ;
+
+	static void set_mountpoints( std::vector<Partition> & partitions ) ;
+	static void set_used_sectors( std::vector<Partition> & partitions ) ;
+	static void mounted_set_used_sectors( Partition & partition ) ;
 #ifdef HAVE_LIBPARTED_FS_RESIZE
-	void LP_set_used_sectors( Partition & partition );
+	static void LP_set_used_sectors( Partition & partition );
 #endif
 	static void set_flags( Partition & partition, PedPartition* lp_partition ) ;
 	
@@ -202,13 +203,13 @@ private:
 
 	//general..	
 	PedDevice* open_device( const Glib::ustring & device_path ) ;
-	bool open_device_and_disk( const Glib::ustring & device_path,
+	static bool open_device_and_disk( const Glib::ustring & device_path,
 								  PedDevice*& lp_device, PedDisk*& lp_disk, bool strict = true) ;
-	void close_disk( PedDisk*& lp_disk ) ;
-	void close_device_and_disk( PedDevice*& lp_device, PedDisk*& lp_disk ) ;
+	static void close_disk( PedDisk*& lp_disk ) ;
+	static void close_device_and_disk( PedDevice*& lp_device, PedDisk*& lp_disk ) ;
 	bool commit( PedDisk* lp_disk ) ;
-	bool commit_to_os( std::time_t timeout, PedDisk* lp_disk ) ;
-	void settle_device( std::time_t timeout ) ;
+	static bool commit_to_os( std::time_t timeout, PedDisk* lp_disk ) ;
+	static void settle_device( std::time_t timeout ) ;
 
 	static PedExceptionOption ped_exception_handler( PedException * e ) ;
 
@@ -217,7 +218,7 @@ private:
 	static std::vector<PedPartitionFlag> flags;
 	std::vector<Glib::ustring> device_paths ;
 	bool probe_devices ;
-	Glib::ustring thread_status_message;  //Used to pass data to show_pulsebar method
+	static Glib::ustring thread_status_message;  //Used to pass data to show_pulsebar method
 	Glib::RefPtr<Glib::IOChannel> iocInput, iocOutput; // Used to send data to gpart command
 	
 	static std::map< Glib::ustring, std::vector<Glib::ustring> > mount_info ;
