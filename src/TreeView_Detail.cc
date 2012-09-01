@@ -121,7 +121,7 @@ void TreeView_Detail::load_partitions( const std::vector<Partition> & partitions
 		row = parent_row ? *( treestore_detail ->append( parent_row .children() ) ) : *( treestore_detail ->append() ) ;
 		create_row( row, partitions[ i ] );
 		
-		if ( partitions[ i ] .type == GParted::TYPE_EXTENDED )
+		if ( !partitions[ i ] .logicals .empty() )
 			load_partitions( partitions[ i ] .logicals, mountpoints, labels, row ) ;
 			
 		if ( partitions[ i ] .get_mountpoints() .size() )
