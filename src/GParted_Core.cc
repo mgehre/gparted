@@ -136,7 +136,79 @@ void GParted_Core::set_user_devices( const std::vector<Glib::ustring> & user_dev
 	this ->device_paths = user_devices ;
 	this ->probe_devices = ! user_devices .size() ;
 }
-	
+
+bool GParted_Core::parse_device( const Glib::ustring& device_path, Proc_Partitions_Info& pp_info, Device& temp_device )
+{
+	/*TO TRANSLATORS: looks like Searching /dev/sda partitions */
+	set_thread_status_message( String::ucompose ( _("Searching %1 partitions"), device_path ) ) ;
+	PedDevice* lp_device = NULL;
+	PedDisk* lp_disk = NULL;
+	if ( !open_device_and_disk( device_path, lp_device, lp_disk, false ) )
+		return false;
+
+	temp_device .Reset() ;
+
+	//device info..
+	temp_device .add_path( device_path ) ;
+	temp_device .add_paths( pp_info .get_alternate_paths( temp_device .get_path() ) ) ;
+
+	temp_device .model 	=	lp_device ->model ;
+	temp_device .length 	=	lp_device ->length ;
+	temp_device .sector_size	=	lp_device ->sector_size ;
+	temp_device .heads 	=	lp_device ->bios_geom .heads ;
+	temp_device .sectors 	=	lp_device ->bios_geom .sectors ;
+	temp_device .cylinders	=	lp_device ->bios_geom .cylinders ;
+	temp_device .cylsize 	=	temp_device .heads * temp_device .sectors ;
+
+	//make sure cylsize is at least 1 MiB
+	if ( temp_device .cylsize < (MEBIBYTE / temp_device .sector_size) )
+		temp_device .cylsize = (MEBIBYTE / temp_device .sector_size) ;
+
+	//normal harddisk
+	if ( lp_disk )
+	{
+		temp_device .disktype =	lp_disk ->type ->name ;
+		temp_device .max_prims = ped_disk_get_max_primary_partition_count( lp_disk ) ;
+
+		set_device_partitions( temp_device, lp_device, lp_disk ) ;
+		set_mountpoints( temp_device .partitions ) ;
+		set_used_sectors( temp_device .partitions ) ;
+
+		if ( temp_device .highest_busy )
+		{
+			temp_device .readonly = ! commit_to_os( 1, lp_disk ) ;
+			//Clear libparted messages.  Typically these are:
+			//  The kernel was unable to re-read the partition table...
+			libparted_messages .clear() ;
+		}
+	}
+	//harddisk without disklabel
+	else
+	{
+		temp_device .disktype =
+				/* TO TRANSLATORS:  unrecognized
+				 * means that the partition table for this
+				 * disk device is unknown or not recognized.
+				 */
+				_("unrecognized") ;
+		temp_device .max_prims = -1 ;
+
+		Partition partition_temp ;
+		partition_temp .Set_Unallocated( temp_device .get_path(),
+						 0,
+						 temp_device .length - 1,
+						 temp_device .sector_size,
+						 false );
+		//Place libparted messages in this unallocated partition
+		partition_temp .messages .insert( partition_temp .messages .end(),
+						  libparted_messages. begin(),
+						  libparted_messages .end() ) ;
+		libparted_messages .clear() ;
+		temp_device .partitions .push_back( partition_temp );
+	}
+	close_device_and_disk( lp_device, lp_disk) ;
+	return true;
+}
 void GParted_Core::set_devices( std::vector<Device> & devices )
 {
 	devices .clear() ;
@@ -258,79 +330,11 @@ void GParted_Core::set_devices( std::vector<Device> & devices )
 	}
 #endif
 
-	for ( unsigned int t = 0 ; t < device_paths .size() ; t++ ) 
+	for ( unsigned int t = 0 ; t < device_paths .size() ; t++ )
 	{
-		/*TO TRANSLATORS: looks like Searching /dev/sda partitions */ 
-		set_thread_status_message( String::ucompose ( _("Searching %1 partitions"), device_paths[ t ] ) ) ;
-		PedDevice* lp_device = NULL;
-		PedDisk* lp_disk = NULL;
-		if ( open_device_and_disk( device_paths[ t ], lp_device, lp_disk, false ) )
-		{
-			temp_device .Reset() ;
-
-			//device info..
-			temp_device .add_path( device_paths[ t ] ) ;
-			temp_device .add_paths( pp_info .get_alternate_paths( temp_device .get_path() ) ) ;
-
-			temp_device .model 	=	lp_device ->model ;
-			temp_device .length 	=	lp_device ->length ;
-			temp_device .sector_size	=	lp_device ->sector_size ;
-			temp_device .heads 	=	lp_device ->bios_geom .heads ;
-			temp_device .sectors 	=	lp_device ->bios_geom .sectors ;
-			temp_device .cylinders	=	lp_device ->bios_geom .cylinders ;
-			temp_device .cylsize 	=	temp_device .heads * temp_device .sectors ; 
-		
-			//make sure cylsize is at least 1 MiB
-			if ( temp_device .cylsize < (MEBIBYTE / temp_device .sector_size) )
-				temp_device .cylsize = (MEBIBYTE / temp_device .sector_size) ;
-				
-			//normal harddisk
-			if ( lp_disk )
-			{
-				temp_device .disktype =	lp_disk ->type ->name ;
-				temp_device .max_prims = ped_disk_get_max_primary_partition_count( lp_disk ) ;
-				
-				set_device_partitions( temp_device, lp_device, lp_disk ) ;
-				set_mountpoints( temp_device .partitions ) ;
-				set_used_sectors( temp_device .partitions ) ;
-			
-				if ( temp_device .highest_busy )
-				{
-					temp_device .readonly = ! commit_to_os( 1, lp_disk ) ;
-					//Clear libparted messages.  Typically these are:
-					//  The kernel was unable to re-read the partition table...
-					libparted_messages .clear() ;
-				}
-			}
-			//harddisk without disklabel
-			else
-			{
-				temp_device .disktype =
-						/* TO TRANSLATORS:  unrecognized
-						 * means that the partition table for this
-						 * disk device is unknown or not recognized.
-						 */
-						_("unrecognized") ;
-				temp_device .max_prims = -1 ;
-				
-				Partition partition_temp ;
-				partition_temp .Set_Unallocated( temp_device .get_path(),
-								 0,
-								 temp_device .length - 1,
-								 temp_device .sector_size,
-								 false );
-				//Place libparted messages in this unallocated partition
-				partition_temp .messages .insert( partition_temp .messages .end(),
-								  libparted_messages. begin(),
-								  libparted_messages .end() ) ;
-				libparted_messages .clear() ;
-				temp_device .partitions .push_back( partition_temp );
-			}
-					
+		Device temp_device;
+		if( parse_device( device_paths[ t ], pp_info, temp_device ) )
 			devices .push_back( temp_device ) ;
-			
-			close_device_and_disk( lp_device, lp_disk) ;
-		}
 	}
 
 	//clear leftover information...	

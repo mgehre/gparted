@@ -31,6 +31,7 @@
 
 namespace GParted
 {
+class Proc_Partitions_Info;
 
 class GParted_Core
 {
@@ -63,6 +64,7 @@ public:
 
 	FileSystem * get_filesystem_object( const FILESYSTEM & filesystem ) ;
 	static bool filesystem_resize_disallowed( const Partition & partition ) ;
+	bool parse_device( const Glib::ustring& device_path, Proc_Partitions_Info& pp_info, Device& temp_device ) ;
 private:
 	//detectionstuff..
 	void init_maps() ;
