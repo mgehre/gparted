@@ -55,14 +55,14 @@ public:
 	bool toggle_flag( const Partition & partition, const Glib::ustring & flag, bool state ) ;
 	
 	const std::vector<FS> & get_filesystems() const ;
-	const FS & get_fs( GParted::FILESYSTEM filesystem ) const ;
+	static const FS & get_fs( GParted::FILESYSTEM filesystem ) ;
 	std::vector<Glib::ustring> get_disklabeltypes() ;
 	std::vector<Glib::ustring> get_all_mountpoints() ;
 	std::map<Glib::ustring, bool> get_available_flags( const Partition & partition ) ;
 	Glib::ustring get_libparted_version() ;
 	Glib::ustring get_thread_status_message() ;
 
-	FileSystem * get_filesystem_object( const FILESYSTEM & filesystem ) ;
+	static FileSystem * get_filesystem_object( const FILESYSTEM & filesystem ) ;
 	static bool filesystem_resize_disallowed( const Partition & partition ) ;
 	bool parse_device( const Glib::ustring& device_path, Proc_Partitions_Info& pp_info, Device& temp_device ) ;
 private:
@@ -74,13 +74,13 @@ private:
 	void read_mountpoints_from_file_swaps(
 		const Glib::ustring & filename,
 		std::map< Glib::ustring, std::vector<Glib::ustring> > & map ) ;
-	Glib::ustring get_partition_path( PedPartition * lp_partition ) ;
-	void set_device_partitions( Device & device, PedDevice* lp_device, PedDisk* lp_disk ) ;
-	GParted::FILESYSTEM get_filesystem( PedDevice* lp_device, PedPartition* lp_partition,
+	static Glib::ustring get_partition_path( PedPartition * lp_partition ) ;
+	static void set_device_partitions( Device & device, PedDevice* lp_device, PedDisk* lp_disk ) ;
+	static GParted::FILESYSTEM get_filesystem( PedDevice* lp_device, PedPartition* lp_partition,
 										  std::vector<Glib::ustring>& messages ) ;
-	void read_label( Partition & partition ) ;
-	void read_uuid( Partition & partition ) ;
-	void insert_unallocated( const Glib::ustring & device_path,
+	static void read_label( Partition & partition ) ;
+	static void read_uuid( Partition & partition ) ;
+	static void insert_unallocated( const Glib::ustring & device_path,
 				 std::vector<Partition> & partitions,
 				 Sector start,
 				 Sector end,
@@ -92,7 +92,7 @@ private:
 #ifdef HAVE_LIBPARTED_FS_RESIZE
 	void LP_set_used_sectors( Partition & partition );
 #endif
-	void set_flags( Partition & partition, PedPartition* lp_partition ) ;
+	static void set_flags( Partition & partition, PedPartition* lp_partition ) ;
 	
 	//operationstuff...
 	bool create( const Device & device, Partition & new_partition, OperationDetail & operationdetail ) ;
@@ -194,7 +194,7 @@ private:
 	bool calculate_exact_geom( const Partition & partition_old,
 			           Partition & partition_new,
 				   OperationDetail & operationdetail ) ;
-	FileSystem* set_proper_filesystem( const FILESYSTEM & filesystem ) ;
+	static FileSystem* set_proper_filesystem( const FILESYSTEM & filesystem ) ;
 #ifndef HAVE_LIBPARTED_3_0_0_PLUS
 	bool erase_filesystem_signatures( const Partition & partition ) ;
 #endif
@@ -212,17 +212,17 @@ private:
 
 	static PedExceptionOption ped_exception_handler( PedException * e ) ;
 
-	std::vector<FS> FILESYSTEMS ;
-	std::map< FILESYSTEM, FileSystem * > FILESYSTEM_MAP ;
-	std::vector<PedPartitionFlag> flags;
+	static std::vector<FS> FILESYSTEMS ;
+	static std::map< FILESYSTEM, FileSystem * > FILESYSTEM_MAP ;
+	static std::vector<PedPartitionFlag> flags;
 	std::vector<Glib::ustring> device_paths ;
 	bool probe_devices ;
 	Glib::ustring thread_status_message;  //Used to pass data to show_pulsebar method
 	Glib::RefPtr<Glib::IOChannel> iocInput, iocOutput; // Used to send data to gpart command
 	
-	std::map< Glib::ustring, std::vector<Glib::ustring> > mount_info ;
-	std::map< Glib::ustring, std::vector<Glib::ustring> > fstab_info ;
-	std::map< Glib::ustring, std::vector<Glib::ustring> >::iterator iter_mp ;
+	static std::map< Glib::ustring, std::vector<Glib::ustring> > mount_info ;
+	static std::map< Glib::ustring, std::vector<Glib::ustring> > fstab_info ;
+	static std::map< Glib::ustring, std::vector<Glib::ustring> >::iterator iter_mp ;
 	
 	char * buf ;
 };
