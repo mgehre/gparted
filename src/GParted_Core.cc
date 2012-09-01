@@ -1178,7 +1178,7 @@ GParted::FILESYSTEM GParted_Core::get_filesystem( PedDevice* lp_device, PedParti
 
 		//TODO:  Temporary code to detect ext4.
 		//       Replace when libparted >= 1.9.0 is chosen as minimum required version.
-		temp = fs_info .get_fs_type( get_partition_path( lp_partition ) ) ;
+		Glib::ustring temp = fs_info .get_fs_type( get_partition_path( lp_partition ) ) ;
 		if ( temp == "ext4" || temp == "ext4dev" )
 			fs_type = temp ;
 	}
@@ -1311,7 +1311,7 @@ GParted::FILESYSTEM GParted_Core::get_filesystem( PedDevice* lp_device, PedParti
 	}
 
 	//no file system found....
-	temp = _( "Unable to detect file system! Possible reasons are:" ) ;
+	Glib::ustring  temp = _( "Unable to detect file system! Possible reasons are:" ) ;
 	temp += "\n- "; 
 	temp += _( "The file system is damaged" ) ;
 	temp += "\n- " ; 
@@ -1549,7 +1549,7 @@ void GParted_Core::set_used_sectors( std::vector<Partition> & partitions )
 				Sector unallocated ;
 				if ( ! partitions[ t ] .sector_usage_known() )
 				{
-					temp = _("Unable to read the contents of this file system!") ;
+					Glib::ustring temp = _("Unable to read the contents of this file system!") ;
 					temp += "\n" ;
 					temp += _("Because of this some operations may be unavailable.") ;
 					if ( ! Utils::get_filesystem_software( partitions[ t ] .filesystem ) .empty() )
@@ -1568,7 +1568,7 @@ void GParted_Core::set_used_sectors( std::vector<Partition> & partitions )
 				else if ( ( unallocated = partitions[ t ] .get_sectors_unallocated() ) > 0 )
 				{
 					/* TO TRANSLATORS: looks like  1.28GiB of unallocated space within the partition. */
-					temp = String::ucompose( _("%1 of unallocated space within the partition."),
+					Glib::ustring temp = String::ucompose( _("%1 of unallocated space within the partition."),
 					                         Utils::format_size( unallocated, partitions[ t ] .sector_size ) ) ;
 					FS fs = get_fs( partitions[ t ] .filesystem ) ;
 					if (    fs .check != GParted::FS::NONE
@@ -1588,7 +1588,7 @@ void GParted_Core::set_used_sectors( std::vector<Partition> & partitions )
 
 				if ( filesystem_resize_disallowed( partitions[ t ] ) )
 				{
-					temp = get_filesystem_object( partitions[ t ] .filesystem )
+					Glib::ustring temp = get_filesystem_object( partitions[ t ] .filesystem )
 					       ->get_custom_text( CTEXT_RESIZE_DISALLOWED_WARNING ) ;
 					if ( ! temp .empty() )
 						partitions[ t ] .messages .push_back( temp ) ;
