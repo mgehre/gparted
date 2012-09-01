@@ -66,7 +66,6 @@ namespace GParted
 
 GParted_Core::GParted_Core() 
 {
-	p_filesystem = NULL ;
 	thread_status_message = "" ;
 
 	ped_exception_set_handler( ped_exception_handler ) ; 
@@ -1335,9 +1334,12 @@ void GParted_Core::read_label( Partition & partition )
 		switch( get_fs( partition .filesystem ) .read_label )
 		{
 			case FS::EXTERNAL:
-				if ( set_proper_filesystem( partition .filesystem ) )
+			{
+				FileSystem* p_filesystem = set_proper_filesystem( partition .filesystem );
+				if ( p_filesystem )
 					p_filesystem ->read_label( partition ) ;
 				break ;
+			}
 #ifndef HAVE_LIBPARTED_3_0_0_PLUS
 			case FS::LIBPARTED:
 				break ;
@@ -1356,9 +1358,12 @@ void GParted_Core::read_uuid( Partition & partition )
 		switch( get_fs( partition .filesystem ) .read_uuid )
 		{
 			case FS::EXTERNAL:
-				if ( set_proper_filesystem( partition .filesystem ) )
+			{
+				FileSystem* p_filesystem = set_proper_filesystem( partition .filesystem ) ;
+				if ( p_filesystem )
 					p_filesystem ->read_uuid( partition ) ;
 				break ;
+			}
 
 			default:
 				break ;
@@ -1517,9 +1522,12 @@ void GParted_Core::set_used_sectors( std::vector<Partition> & partitions )
 					switch( get_fs( partitions[ t ] .filesystem ) .online_read )
 					{
 						case FS::EXTERNAL:
-							if ( set_proper_filesystem( partitions[ t ] .filesystem ) )
+						{
+							FileSystem* p_filesystem = set_proper_filesystem( partitions[ t ] .filesystem ) ;
+							if ( p_filesystem )
 								p_filesystem ->set_used_sectors( partitions[ t ] ) ;
 							break ;
+						}
 						case FS::GPARTED:
 							mounted_set_used_sectors( partitions[ t ] ) ;
 							break ;
@@ -1533,9 +1541,12 @@ void GParted_Core::set_used_sectors( std::vector<Partition> & partitions )
 					switch( get_fs( partitions[ t ] .filesystem ) .read )
 					{
 						case GParted::FS::EXTERNAL	:
-							if ( set_proper_filesystem( partitions[ t ] .filesystem ) )
+						{
+							FileSystem* p_filesystem = set_proper_filesystem( partitions[ t ] .filesystem ) ;
+							if ( p_filesystem )
 								p_filesystem ->set_used_sectors( partitions[ t ] ) ;
 							break ;
+						}
 #ifdef HAVE_LIBPARTED_FS_RESIZE
 						case GParted::FS::LIBPARTED	:
 							LP_set_used_sectors( partitions[ t ] ) ;
@@ -1804,10 +1815,13 @@ bool GParted_Core::create_filesystem( const Partition & partition, OperationDeta
 			break ;
 #endif
 		case GParted::FS::EXTERNAL:
-			succes = set_proper_filesystem( partition .filesystem ) &&
+		{
+			FileSystem* p_filesystem;
+			succes = (p_filesystem = set_proper_filesystem( partition .filesystem )) &&
 				 p_filesystem ->create( partition, operationdetail .get_last_child() ) ;
 
 			break ;
+		}
 
 		default:
 			break ;
@@ -1885,8 +1899,9 @@ bool GParted_Core::remove_filesystem( const Partition & partition, OperationDeta
 			operationdetail .add_child( OperationDetail( String::ucompose(
 								_("delete %1 file system"),
 								Utils::get_filesystem_string( partition .filesystem ) ) ) ) ;
-			success = set_proper_filesystem( partition .filesystem ) &&
-			          p_filesystem ->remove( partition, operationdetail .get_last_child() ) ;
+			FileSystem* p_filesystem ;
+			success = (p_filesystem = set_proper_filesystem( partition .filesystem )) &&
+					 p_filesystem ->remove( partition, operationdetail .get_last_child() ) ;
 			operationdetail .get_last_child() .set_status( success ? STATUS_SUCCES : STATUS_ERROR ) ;
 			break ;
 
@@ -1916,9 +1931,12 @@ bool GParted_Core::label_partition( const Partition & partition, OperationDetail
 		switch( get_fs( partition .filesystem ) .write_label )
 		{
 			case FS::EXTERNAL:
-				succes = set_proper_filesystem( partition .filesystem ) &&
+			{
+				FileSystem* p_filesystem ;
+				succes = (p_filesystem = set_proper_filesystem( partition .filesystem )) &&
 					 p_filesystem ->write_label( partition, operationdetail .get_last_child() ) ;
 				break ;
+			}
 #ifndef HAVE_LIBPARTED_3_0_0_PLUS
 			case FS::LIBPARTED:
 				break ;
@@ -1954,9 +1972,12 @@ bool GParted_Core::change_uuid( const Partition & partition, OperationDetail & o
 		switch( get_fs( partition .filesystem ) .write_uuid )
 		{
 			case FS::EXTERNAL:
-				succes = set_proper_filesystem( partition .filesystem ) &&
+			{
+				FileSystem* p_filesystem;
+				succes = (p_filesystem = set_proper_filesystem( partition .filesystem )) &&
 					 p_filesystem ->write_uuid( partition, operationdetail .get_last_child() ) ;
 				break ;
+			}
 
 			default:
 				break;
@@ -2154,7 +2175,8 @@ bool GParted_Core::move_filesystem( const Partition & partition_old,
 			break ;
 #endif
 		case GParted::FS::EXTERNAL:
-			succes = set_proper_filesystem( partition_new .filesystem ) &&
+			FileSystem* p_filesystem;
+			succes = (p_filesystem = set_proper_filesystem( partition_new .filesystem )) &&
 			         p_filesystem ->move( partition_old
 			                            , partition_new
 			                            , operationdetail .get_last_child()
@@ -2492,7 +2514,8 @@ bool GParted_Core::resize_filesystem( const Partition & partition_old,
 			break ;
 #endif
 		case GParted::FS::EXTERNAL:
-			succes = set_proper_filesystem( partition_new .filesystem ) && 
+			FileSystem* p_filesystem;
+			succes = (p_filesystem = set_proper_filesystem( partition_new .filesystem )) &&
 				 p_filesystem ->resize( partition_new,
 							operationdetail .get_last_child(), 
 							fill_partition ) ;
@@ -2584,7 +2607,8 @@ bool GParted_Core::copy( const Partition & partition_src,
 #endif
 
 				case GParted::FS::EXTERNAL :
-						succes = set_proper_filesystem( partition_dst .filesystem ) &&
+					FileSystem* p_filesystem;
+					succes = (p_filesystem = set_proper_filesystem( partition_dst .filesystem )) &&
 							 p_filesystem ->copy( partition_src .get_path(),
 								     	      partition_dst .get_path(),
 									      operationdetail .get_last_child() ) ;
@@ -2825,7 +2849,8 @@ bool GParted_Core::check_repair_filesystem( const Partition & partition, Operati
 			break ;
 #endif
 		case GParted::FS::EXTERNAL:
-			succes = set_proper_filesystem( partition .filesystem ) &&
+			FileSystem* p_filesystem;
+			succes = (p_filesystem = set_proper_filesystem( partition .filesystem )) &&
 				 p_filesystem ->check_repair( partition, operationdetail .get_last_child() ) ;
 
 			break ;
@@ -3257,11 +3282,9 @@ bool GParted_Core::calculate_exact_geom( const Partition & partition_old,
 	return succes ;
 }
 
-bool GParted_Core::set_proper_filesystem( const FILESYSTEM & filesystem )
+FileSystem* GParted_Core::set_proper_filesystem( const FILESYSTEM & filesystem )
 {
-	p_filesystem = get_filesystem_object( filesystem ) ;
-
-	return p_filesystem ;
+	return get_filesystem_object( filesystem ) ;
 }
 
 FileSystem * GParted_Core::get_filesystem_object( const FILESYSTEM & filesystem )
@@ -3561,7 +3584,6 @@ PedExceptionOption GParted_Core::ped_exception_handler( PedException * e )
 
 GParted_Core::~GParted_Core() 
 {
-	delete p_filesystem;
 }
 
 Glib::Thread *GParted_Core::mainthread;
