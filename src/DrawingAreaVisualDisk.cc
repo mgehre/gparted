@@ -78,7 +78,7 @@ void DrawingAreaVisualDisk::clear()
 int DrawingAreaVisualDisk::get_total_separator_px( const std::vector<Partition> & partitions ) 
 {
 	for ( unsigned int t = 0 ; t < partitions .size() ; t++ )
-		if ( partitions[ t ] .type == GParted::TYPE_EXTENDED )
+		if ( ! partitions[ t ] .logicals. empty() )
 			return ( partitions[ t ] .logicals .size() -1 + partitions .size() -1 ) * SEP ;
 
 
@@ -100,7 +100,7 @@ void DrawingAreaVisualDisk::set_static_data( const std::vector<Partition> & part
 		visual_partitions .back() .color = partitions[ t ] .color; 
 		get_colormap() ->alloc_color( visual_partitions .back() .color );
 
-		if ( partitions[ t ] .type == GParted::TYPE_EXTENDED )
+		if ( ! partitions[ t ] .logicals .empty() )
 			set_static_data( partitions[ t ] .logicals,
 					 visual_partitions .back() .logicals, partition_length ) ;
 		else
