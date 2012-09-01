@@ -1018,6 +1018,14 @@ void GParted_Core::set_device_partitions( Device & device, PedDevice* lp_device,
 			case PED_PARTITION_NORMAL:
 			case PED_PARTITION_LOGICAL:
 				filesystem = get_filesystem( lp_device, lp_partition, partition_temp .messages ) ;
+
+				/* ped_partition_is_busy returns false for busy partitions inside luks containers
+				 * TODO: submit bug to libparted
+				 */
+				iter_mp = mount_info.find( partition_path );
+				if ( iter_mp != mount_info .end() )
+					partition_is_busy = true ;
+
 #ifndef USE_LIBPARTED_DMRAID
 				//Handle dmraid devices differently because the minor number might not
 				//  match the last number of the partition filename as shown by "ls -l /dev/mapper"
@@ -1033,10 +1041,10 @@ void GParted_Core::set_device_partitions( Device & device, PedDevice* lp_device,
 					if ( iter_mp != mount_info .end() )
 						partition_is_busy = true ;
 				}
-				else
 #endif
-					partition_is_busy = ped_partition_is_busy( lp_partition ) ||
-					                    ( filesystem == GParted::FS_LVM2_PV && lvm2_pv_info .has_active_lvs( partition_path ) ) ;
+				partition_is_busy = partition_is_busy ||
+									ped_partition_is_busy( lp_partition ) ||
+									( filesystem == GParted::FS_LVM2_PV && lvm2_pv_info .has_active_lvs( partition_path ) ) ;
 
 				partition_temp .Set( device .get_path(),
 						     partition_path,
