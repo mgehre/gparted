@@ -1062,7 +1062,7 @@ void GParted_Core::set_device_partitions( Device & device, PedDevice* lp_device,
 				partition_is_busy = partition_is_busy ||
 				                    ped_partition_is_busy( lp_partition ) ||
 				                    ( filesystem == GParted::FS_LVM2_PV && lvm2_pv_info .has_active_lvs( partition_path ) ) ||
-				                    ( filesystem == GParted::FS_LUKS && !luks::find_map_by_device( partition_path, partition_temp. messages ) .empty() );
+				                    ( filesystem == GParted::FS_LUKS && !luks::find_map_name_by_device( partition_path, partition_temp. messages ) .empty() );
 
 				partition_temp .Set( device .get_path(),
 						     partition_path,
@@ -1081,6 +1081,9 @@ void GParted_Core::set_device_partitions( Device & device, PedDevice* lp_device,
 
 				partition_temp .add_paths( pp_info .get_alternate_paths( partition_temp .get_path() ) ) ;
 				set_flags( partition_temp, lp_partition ) ;
+
+				if( filesystem == GParted::FS_LUKS && partition_is_busy)
+					luks::set_contained_partition( partition_temp );
 
 				if ( partition_temp .busy && partition_temp .partition_number > device .highest_busy )
 					device .highest_busy = partition_temp .partition_number ;
@@ -1541,9 +1544,9 @@ void GParted_Core::set_mountpoints( std::vector<Partition> & partitions )
 		}
 		else if ( partitions[ t ] .filesystem == GParted::FS_LUKS )
 		{
-			Glib::ustring map_name = luks::find_map_by_device( partitions[t].get_path(), partitions[ t ] .messages );
+			Glib::ustring map_name = luks::find_map_name_by_device( partitions[t].get_path(), partitions[ t ] .messages );
 			if ( ! map_name .empty() )
-				partitions[ t ] .add_mountpoint( map_name ) ;
+				partitions[ t ] .add_mountpoint( luks::get_mapping_device_by_mapping_name(map_name) ) ;
 		}
 	}
 }
