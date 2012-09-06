@@ -62,6 +62,8 @@ public:
 	         , OperationDetail & operationdetail ) ;
 	bool check_repair( const Partition & partition, OperationDetail & operationdetail ) ;
 	bool remove( const Partition & partition, OperationDetail & operationdetail ) ;
+
+	const Glib::ustring get_custom_text( CUSTOM_TEXT ttype, int index ) ;
 };
 
 } //GParted

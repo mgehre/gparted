@@ -2060,6 +2060,22 @@ void Win_GParted::thread_toggle_lvm2_pv( bool * success, Glib::ustring * error )
 	pulse = false ;
 }
 
+void Win_GParted::thread_toggle_luks( bool * success, Glib::ustring * error )
+{
+	Glib::ustring dummy ;
+
+	if ( selected_partition .busy )
+		//VGNAME from mount point
+		*success = ! Utils::execute_command( "cryptsetup luksClose " + selected_partition .get_mountpoint(),
+		                                     dummy,
+		                                     *error ) ;
+	else
+		*success = false ;
+
+	pulse = false ;
+}
+
+
 // Runs gpart in a thread
 void Win_GParted::thread_guess_partition_table()
 {
@@ -2161,6 +2177,33 @@ void Win_GParted::toggle_busy_state()
 				*this,
 				selected_partition .busy ? _("Could not deactivate Volume Group")
 				                         : _("Could not activate Volume Group"),
+				false,
+				Gtk::MESSAGE_ERROR,
+				Gtk::BUTTONS_OK,
+				true ) ;
+
+			dialog .set_secondary_text( error ) ;
+
+			dialog.run() ;
+		}
+	}
+	else if ( selected_partition .filesystem == GParted::FS_LUKS )
+	{
+		thread = Glib::Thread::create( sigc::bind<bool *, Glib::ustring *>(
+			sigc::mem_fun( *this, &Win_GParted::thread_toggle_luks ), &succes, &error ), true ) ;
+
+		show_pulsebar(
+			String::ucompose(
+				selected_partition .busy ? _("Deactivating mapping %1")
+				                         : _("Activating mapping %1"),
+				selected_partition .get_mountpoint() ) ) ;
+
+		if ( ! succes )
+		{
+			Gtk::MessageDialog dialog(
+				*this,
+				selected_partition .busy ? _("Could not deactivate mapping")
+				                         : _("Could not activate mapping"),
 				false,
 				Gtk::MESSAGE_ERROR,
 				Gtk::BUTTONS_OK,
