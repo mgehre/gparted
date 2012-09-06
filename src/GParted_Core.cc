@@ -1067,6 +1067,10 @@ void GParted_Core::set_device_partitions( Device & device, PedDevice* lp_device,
 						     lp_partition ->type,
 						     partition_is_busy ) ;
 
+				/* libparted uses "loop" if the disk has no partition table and the fs is directly on the disk */
+				if( !strcmp(lp_disk->type->name, "loop") )
+					partition_temp.raw = true ;
+
 				partition_temp .add_paths( pp_info .get_alternate_paths( partition_temp .get_path() ) ) ;
 				set_flags( partition_temp, lp_partition ) ;
 

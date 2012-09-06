@@ -126,6 +126,10 @@ public:
 	Gdk::Color color;
 	bool inside_extended;
 	bool busy;
+	/* true if this is just a virtual partition. Actually the disk has no partition table and
+	 * the filesystem is directly on the disk
+	 */
+	bool raw;
 	std::vector<Glib::ustring> messages ;
 	std::vector<Glib::ustring> flags ;
 	
