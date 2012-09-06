@@ -49,7 +49,7 @@ void Partition::Reset()
 	free_space_before = -1 ;
 	sector_size = 0 ;
 	color .set( "black" ) ;
-	inside_extended = busy = strict_start = false ;
+	inside_extended = busy = strict_start = raw = false ;
 	logicals .clear() ;
 	flags .clear() ;
 	mountpoints .clear() ;

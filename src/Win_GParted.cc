@@ -1051,8 +1051,12 @@ void Win_GParted::set_valid_operations()
 	if (  selected_partition .type == GParted::TYPE_PRIMARY || selected_partition .type == GParted::TYPE_LOGICAL )
 	{
 		fs = gparted_core .get_fs( selected_partition .filesystem ) ;
-		
-		allow_delete( true ) ;
+
+		/* We cannot allow to delete the filesystem when there is no partition table
+		 * because libparted will not recognize that disk afterwards. Just allow reformat/paste.
+		 */
+		if( !selected_partition.raw )
+			allow_delete( true ) ;
 		allow_format( true ) ;
 		
 		//find out if resizing/moving is possible
