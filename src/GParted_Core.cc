@@ -972,6 +972,15 @@ Glib::ustring GParted_Core::get_partition_path( PedPartition * lp_partition )
 		free(lp_path);
 	}
 
+	/*
+	 * There is a bug in libparted.
+	 * See http://lists.gnu.org/archive/html/bug-parted/2012-09/msg00000.html
+	 */
+	if( !strcmp(lp_partition->disk->type->name, "loop") )
+	{ //On "loop" partition tables, the partition is the device
+		partition_path = lp_partition->disk->dev->path ;
+	}
+
 #ifndef USE_LIBPARTED_DMRAID
 	//Ensure partition path name is compatible with dmraid
 	DMRaid dmraid;   //Use cache of dmraid device information
