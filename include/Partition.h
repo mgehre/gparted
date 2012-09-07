@@ -107,6 +107,7 @@ public:
 	bool operator!=( const Partition & partition ) const ;
 		
 	//some public members
+	// path of the device where the partition table is which this partition is part of
 	Glib::ustring device_path ;
 	int partition_number;
 	PartitionType type;// UNALLOCATED, PRIMARY, LOGICAL, etc...

@@ -53,6 +53,7 @@ void Partition::Reset()
 	logicals .clear() ;
 	flags .clear() ;
 	mountpoints .clear() ;
+	device_path .clear() ;
 }
 
 void Partition::Set(	const Glib::ustring & device_path,
