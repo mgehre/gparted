@@ -35,7 +35,9 @@ public:
 	void add_paths( const std::vector<Glib::ustring> & paths, bool clear_paths = false ) ;
 	Glib::ustring get_path() const ;
 	std::vector<Glib::ustring> get_paths() const ;
-	
+	/* Returns true if path is a member of get_paths() */
+	bool has_path( const Glib::ustring& path ) const ;
+
 	bool operator==( const Device & device ) const ;
 	bool operator!=( const Device & device ) const ;
 	

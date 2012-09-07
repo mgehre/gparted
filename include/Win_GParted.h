@@ -53,7 +53,7 @@ private:
 	void init_device_info() ;
 	void init_hpaned_main() ;
 
-	void refresh_combo_devices() ;
+	void refresh_combo_devices( unsigned int current_device ) ;
 	void show_pulsebar( const Glib::ustring & status_message ) ;
 	
 	//Fill txtview_device_info_buffer with some information about the selected device
@@ -182,10 +182,12 @@ private:
 	void activate_apply();
 	bool remove_non_empty_lvm2_pv_dialog( const OperationType optype ) ;
 
+	/* Returns the device corresponding to the selected_partition. This
+	 * may be different then the device selected from the combo-box
+	 */
 	Device& get_selected_device() ;
 
 //private variables
-	unsigned int current_device ;
 	Partition selected_partition, copied_partition;
 	std::vector<Device> devices;
 	std::vector<Operation *> operations;

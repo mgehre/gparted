@@ -64,6 +64,7 @@ public:
 
 	static FileSystem * get_filesystem_object( const FILESYSTEM & filesystem ) ;
 	static bool filesystem_resize_disallowed( const Partition & partition ) ;
+	static bool parse_device( const Glib::ustring& device_path, Device& temp_device ) ;
 	static bool parse_device( const Glib::ustring& device_path, Proc_Partitions_Info& pp_info, Device& temp_device ) ;
 private:
 	//detectionstuff..
