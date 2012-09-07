@@ -181,6 +181,8 @@ private:
 	void activate_apply();
 	bool remove_non_empty_lvm2_pv_dialog( const OperationType optype ) ;
 
+	Device& get_selected_device() ;
+
 //private variables
 	unsigned int current_device ;
 	Partition selected_partition, copied_partition;
