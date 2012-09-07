@@ -70,6 +70,11 @@ std::vector<Glib::ustring> Device::get_paths() const
 	return paths ;
 }
 
+bool Device::has_path( const Glib::ustring& path ) const
+{
+	return (std::find( paths.begin(), paths.end(), path ) != paths.end()) ;
+}
+
 bool Device::operator==( const Device & device ) const
 {
 	return this ->get_path() == device .get_path() ;

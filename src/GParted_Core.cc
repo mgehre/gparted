@@ -145,6 +145,12 @@ void GParted_Core::set_user_devices( const std::vector<Glib::ustring> & user_dev
 	this ->probe_devices = ! user_devices .size() ;
 }
 
+bool GParted_Core::parse_device( const Glib::ustring& device_path, Device& temp_device )
+{
+	Proc_Partitions_Info pp_info ;
+	return parse_device( device_path, pp_info, temp_device );
+}
+
 bool GParted_Core::parse_device( const Glib::ustring& device_path, Proc_Partitions_Info& pp_info, Device& temp_device )
 {
 	/*TO TRANSLATORS: looks like Searching /dev/sda partitions */

@@ -52,7 +52,6 @@ Win_GParted::Win_GParted( const std::vector<Glib::ustring> & user_devices )
 	copied_partition .Reset() ;
 	selected_partition .Reset() ;
 	new_count = 1;
-	current_device = 0 ;
 	pulse = false ; 
 	OPERATIONSLIST_OPEN = true ;
 	gparted_core .set_user_devices( user_devices ) ;
@@ -567,7 +566,7 @@ void Win_GParted::init_hpaned_main()
 	hpaned_main .pack2( *scrollwindow, true, true );
 }
 
-void Win_GParted::refresh_combo_devices()
+void Win_GParted::refresh_combo_devices( unsigned int current_device )
 {
 	liststore_devices ->clear() ;
 	
@@ -604,7 +603,10 @@ void Win_GParted::refresh_combo_devices()
 		menu ->show_all() ;
 		menubar_main .items()[ 0 ] .get_submenu() ->items()[ 1 ] .set_submenu( *menu ) ;
 	}
-	
+
+	if( current_device == -1 ||
+		current_device >=  devices.size() )
+		current_device = 0;
 	combo_devices .set_active( current_device ) ;
 }
 
@@ -816,6 +818,9 @@ bool Win_GParted::Merge_Operations( unsigned int first, unsigned int second )
 
 void Win_GParted::Refresh_Visual()
 {
+	//no partition can be selected after a refresh..
+	selected_partition .Reset() ;
+
 	std::vector<Partition> partitions = get_selected_device() .partitions ;
 	
 	//make all operations visible
@@ -867,9 +872,7 @@ void Win_GParted::Refresh_Visual()
 
 	//treeview details
 	treeview_detail .load_partitions( partitions ) ;
-	
-	//no partition can be selected after a refresh..
-	selected_partition .Reset() ;
+
 	set_valid_operations() ; 
 			
 	while ( Gtk::Main::events_pending() ) 
@@ -1160,21 +1163,21 @@ void Win_GParted::clear_operationslist()
 
 void Win_GParted::combo_devices_changed()
 {
-	unsigned int old_current_device = current_device;
-	//set new current device
-	current_device = combo_devices .get_active_row_number() ;
-	if ( current_device == (unsigned int) -1 )
-		current_device = old_current_device;
-	if ( current_device >= devices .size() )
+	unsigned int current_device = combo_devices .get_active_row_number() ;
+	if ( current_device == (unsigned int) -1 ||
+		 current_device >= devices .size() )
 		current_device = 0 ;
-	set_title( String::ucompose( _("%1 - GParted"), get_selected_device() .get_path() ) );
-	
+	set_title( String::ucompose( _("%1 - GParted"), devices[ current_device ] .get_path() ) );
+
+	//No partition is selected any more
+	selected_partition .Reset() ;
+
 	//refresh label_device_info
 	Fill_Label_Device_Info();
-	
+
 	//rebuild visualdisk and treeview
 	Refresh_Visual();
-	
+
 	//uodate radiobuttons..
 	if ( menubar_main .items()[ 0 ] .get_submenu() ->items()[ 1 ] .get_submenu() )
 		static_cast<Gtk::RadioMenuItem *>( 
@@ -1211,13 +1214,10 @@ void Win_GParted::thread_refresh_devices()
 void Win_GParted::menu_gparted_refresh_devices()
 {
 	pulse = true ;	
+	unsigned int current_device = combo_devices .get_active_row_number() ;
 	thread = Glib::Thread::create( sigc::mem_fun( *this, &Win_GParted::thread_refresh_devices ), true ) ;
 
 	show_pulsebar( _("Scanning all devices...") ) ;
-	
-	//check if current_device is still available (think about hotpluggable stuff like usbdevices)
-	if ( current_device >= devices .size() )
-		current_device = 0 ;
 
 	//see if there are any pending operations on non-existent devices
 	//NOTE that this isn't 100% foolproof since some stuff (e.g. sourcedevice of copy) may slip through.
@@ -1273,8 +1273,8 @@ void Win_GParted::menu_gparted_refresh_devices()
 		toolbar_main .set_sensitive( true ) ;
 		drawingarea_visualdisk .set_sensitive( true ) ;
 		treeview_detail .set_sensitive( true ) ;
-		
-		refresh_combo_devices() ;	
+
+		refresh_combo_devices( current_device ) ;
 	}
 }
 
@@ -1471,7 +1471,11 @@ void Win_GParted::on_partition_selected( const Partition & partition, bool src_i
 	selected_partition = partition;
 
 	set_valid_operations() ;
-	
+
+	//refresh label_device_info
+	//(because get_selected_device uses selected_partiton)
+	Fill_Label_Device_Info();
+
 	if ( src_is_treeview )
 		drawingarea_visualdisk .set_selected( partition ) ;
 	else
@@ -2798,7 +2802,28 @@ bool Win_GParted::remove_non_empty_lvm2_pv_dialog( const OperationType optype )
 
 Device& Win_GParted::get_selected_device()
 {
-	return devices[ current_device ] ;
+	if( selected_partition .device_path .empty() )
+	{
+		/* no partition is currently selected, so return the device
+		 * selected in the combo box
+		 */
+		return devices[ combo_devices .get_active_row_number() ] ;
+	}
+
+	for ( size_t i=0; i<devices.size(); ++i)
+	{
+		if ( devices[ i ] .has_path( selected_partition .device_path ) )
+			return devices[ i ] ;
+	}
+
+	//FIXME: Device for current partition not found. This happens for devices contained in LUKS, because
+	//they are not added to the devices list by GPartedCore. This does not have any adversary effects.
+	//It's just not very beautiful.
+
+	Device dev ;
+	GParted_Core::parse_device( selected_partition .device_path, dev ) ;
+	devices.push_back( dev );
+	return devices.back() ;
 }
 
 
