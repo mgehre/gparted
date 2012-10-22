@@ -216,6 +216,7 @@ private:
 	HBoxOperations hbox_operations ;
 
 	//device combo
+	sigc::connection combo_devices_changed_connection ;
 	Glib::RefPtr<Gtk::ListStore> liststore_devices ;
 
 	struct treeview_devices_Columns : public Gtk::TreeModelColumnRecord

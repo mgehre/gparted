@@ -296,7 +296,7 @@ void Win_GParted::init_toolbar()
 	combo_devices .pack_start( treeview_devices_columns .device ) ;
 	combo_devices .pack_start( treeview_devices_columns .size, false ) ;
 	
-	combo_devices .signal_changed() .connect( sigc::mem_fun(*this, &Win_GParted::combo_devices_changed) );
+	combo_devices_changed_connection = combo_devices .signal_changed() .connect( sigc::mem_fun(*this, &Win_GParted::combo_devices_changed) );
 
 	hbox_toolbar .pack_start( combo_devices, Gtk::PACK_SHRINK ) ;
 }
@@ -568,6 +568,9 @@ void Win_GParted::init_hpaned_main()
 
 void Win_GParted::refresh_combo_devices( unsigned int current_device )
 {
+	//disable callback while we recreate the device_list. The callback
+	//would be called by liststore_devices ->clear() with an incomplete list.
+	combo_devices_changed_connection .disconnect() ;
 	liststore_devices ->clear() ;
 	
 	menu = manage( new Gtk::Menu() ) ;
@@ -604,6 +607,8 @@ void Win_GParted::refresh_combo_devices( unsigned int current_device )
 		menubar_main .items()[ 0 ] .get_submenu() ->items()[ 1 ] .set_submenu( *menu ) ;
 	}
 
+	// reactivate callback
+	combo_devices_changed_connection = combo_devices .signal_changed() .connect( sigc::mem_fun(*this, &Win_GParted::combo_devices_changed) );
 	if( current_device == -1 ||
 		current_device >=  devices.size() )
 		current_device = 0;
