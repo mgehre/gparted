@@ -656,29 +656,22 @@ void Win_GParted::show_pulsebar( const Glib::ustring & status_message )
 	drawingarea_visualdisk .set_sensitive( true ) ;
 }
 
-void Win_GParted::Fill_Label_Device_Info( bool clear ) 
+void Win_GParted::Fill_Label_Device_Info()
 {
-	if ( clear )
-		for ( unsigned int t = 0 ; t < device_info .size( ) ; t++ )
-			device_info[ t ] ->set_text( "" ) ;
-		
-	else
-	{		
-		short t = 0;
-		
-		//global info...
-		device_info[ t++ ] ->set_text( get_selected_device() .model ) ;
-		device_info[ t++ ] ->set_text( Utils::format_size( get_selected_device() .length, get_selected_device() .sector_size ) ) ;
-		device_info[ t++ ] ->set_text( Glib::build_path( "\n", get_selected_device() .get_paths() ) ) ;
-		
-		//detailed info
-		device_info[ t++ ] ->set_text( get_selected_device() .disktype ) ;
-		device_info[ t++ ] ->set_text( Utils::num_to_str( get_selected_device() .heads ) );
-		device_info[ t++ ] ->set_text( Utils::num_to_str( get_selected_device() .sectors ) );
-		device_info[ t++ ] ->set_text( Utils::num_to_str( get_selected_device() .cylinders ) );
-		device_info[ t++ ] ->set_text( Utils::num_to_str( get_selected_device() .length ) );
-		device_info[ t++ ] ->set_text( Utils::num_to_str( get_selected_device() .sector_size ) );
-	}
+	short t = 0;
+
+	//global info...
+	device_info[ t++ ] ->set_text( get_selected_device() .model ) ;
+	device_info[ t++ ] ->set_text( Utils::format_size( get_selected_device() .length, get_selected_device() .sector_size ) ) ;
+	device_info[ t++ ] ->set_text( Glib::build_path( "\n", get_selected_device() .get_paths() ) ) ;
+
+	//detailed info
+	device_info[ t++ ] ->set_text( get_selected_device() .disktype ) ;
+	device_info[ t++ ] ->set_text( Utils::num_to_str( get_selected_device() .heads ) );
+	device_info[ t++ ] ->set_text( Utils::num_to_str( get_selected_device() .sectors ) );
+	device_info[ t++ ] ->set_text( Utils::num_to_str( get_selected_device() .cylinders ) );
+	device_info[ t++ ] ->set_text( Utils::num_to_str( get_selected_device() .length ) );
+	device_info[ t++ ] ->set_text( Utils::num_to_str( get_selected_device() .sector_size ) );
 }
 
 bool Win_GParted::on_delete_event( GdkEventAny *event )
@@ -1257,7 +1250,8 @@ void Win_GParted::menu_gparted_refresh_devices()
 		drawingarea_visualdisk .set_sensitive( false ) ;
 		treeview_detail .set_sensitive( false ) ;
 
-		Fill_Label_Device_Info( true ) ;
+		for ( unsigned int t = 0 ; t < device_info .size( ) ; t++ )
+			device_info[ t ] ->set_text( "" ) ;
 		
 		drawingarea_visualdisk .clear() ;
 		treeview_detail .clear() ;

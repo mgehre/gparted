@@ -57,7 +57,7 @@ private:
 	void show_pulsebar( const Glib::ustring & status_message ) ;
 	
 	//Fill txtview_device_info_buffer with some information about the selected device
-	void Fill_Label_Device_Info( bool clear = false );
+	void Fill_Label_Device_Info();
 
 	void Add_Operation( Operation * operation, int index = -1 ) ;
 	bool Merge_Operations( unsigned int first, unsigned int second );
