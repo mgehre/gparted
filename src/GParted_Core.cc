@@ -64,6 +64,13 @@ std::vector<Glib::ustring> libparted_messages ; //see ped_exception_handler()
 namespace GParted
 {
 
+std::vector<FS> GParted_Core::FILESYSTEMS ;
+std::map< FILESYSTEM, FileSystem * > GParted_Core::FILESYSTEM_MAP ;
+std::vector<PedPartitionFlag> GParted_Core::flags;
+std::map< Glib::ustring, std::vector<Glib::ustring> > GParted_Core::mount_info ;
+std::map< Glib::ustring, std::vector<Glib::ustring> > GParted_Core::fstab_info ;
+std::map< Glib::ustring, std::vector<Glib::ustring> >::iterator GParted_Core::iter_mp ;
+
 GParted_Core::GParted_Core() 
 {
 	thread_status_message = "" ;
@@ -779,7 +786,7 @@ const std::vector<FS> & GParted_Core::get_filesystems() const
 	return FILESYSTEMS ;
 }
 
-const FS & GParted_Core::get_fs( GParted::FILESYSTEM filesystem ) const 
+const FS & GParted_Core::get_fs( GParted::FILESYSTEM filesystem )
 {
 	unsigned int unknown ;
 
