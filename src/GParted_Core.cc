@@ -70,6 +70,7 @@ std::vector<PedPartitionFlag> GParted_Core::flags;
 std::map< Glib::ustring, std::vector<Glib::ustring> > GParted_Core::mount_info ;
 std::map< Glib::ustring, std::vector<Glib::ustring> > GParted_Core::fstab_info ;
 std::map< Glib::ustring, std::vector<Glib::ustring> >::iterator GParted_Core::iter_mp ;
+Glib::ustring GParted_Core::thread_status_message ;
 
 GParted_Core::GParted_Core() 
 {
